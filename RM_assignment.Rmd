@@ -215,6 +215,7 @@ Based on the adjusted R squared the model explains ``r format((summ$adj.r.square
 Residual standard error with this model is ``r summ$sigma`` at ``r summ$df[2]`` degrees of freedom   
 
 **Based on the analysis, model 8 is chosen as the most appropriate. Plotting residuals to confirm that there are no other problems.**      
+
 ####Plot of the fit    
 ```{r fig.width=5, fig.height=5, echo=FALSE}
 par(mfrow = c(2, 2))
