@@ -4,83 +4,33 @@ author: "Benil Mathew"
 date: "22 October 2016"
 output: html_document
 ---
+###Executive Summary    
 This report is a R markdown of the peer-graded assignment for Regression Models Coursera course.
 
 The analysis in this assignment attempts to answer the following questions based on the `mtcars` dataset:    
 - Is an automatic or manual transmission better for MPG?    
 - Quantify the MPG difference between automatic and manual transmissions    
 
-The `mtcars` dataset include data that was extracted from the 1974 Motor Trend US magazine, comprising of fuel consumption and 10 other aspects of automobile design and performance for 32 automobiles (1973–74 models). The features in the dataset are:    
-- mpg	- Miles/(US) gallon   
-- cyl	- Number of cylinders   
-- disp - Displacement (cu.in.)   
-- hp - Gross horsepower   
-- drat - Rear axle ratio    
-- wt - Weight (1000 lbs)   
-- qsec - 1/4 mile time    
-- vs - V/S    
-- am - Transmission (0 = automatic, 1 = manual)   
-- gear - Number of forward gears    
-- carb - Number of carburetors   
+Based on the analysis MPG changes by 14.0794278 + -4.1413764 * weight (in 1000 lbs) for manual transmission in comparison with automatic transmission, when 1/4 mile time and weight are held constant. Below a weight of 3399.698 lbs manual transmission is better for MPG, but for weight above this value, automatic transmission is better.
 
-####Loading and peak into the data    
+###The analysis   
+The `mtcars` dataset include data that was extracted from the 1974 Motor Trend US magazine, comprising of fuel consumption and 10 other aspects of automobile design and performance for 32 automobiles (1973–74 models). The features in the dataset are - `mpg`	- Miles/(US) gallon, `cyl` - Number of cylinders, `disp` - Displacement (cu.in.), `hp` - Gross horsepower, `drat` - Rear axle ratio, `wt` - Weight (1000 lbs), `qsec` - 1/4 mile time, `vs` - V/S, `am` - Transmission (0 = automatic, 1 = manual), `gear` - Number of forward gears, `carb` - Number of carburetors   
+
+####Loading the data    
 ```{r}
 library(ggplot2)
 data(mtcars)
 ```
-Number of rows (observations) and coloums (features) in the dataset
+
+Convert features to factors
 ```{r}
-dim(mtcars)
-```
-A quick look at the data
-```{r}
-head(mtcars)
-```
-Convert features to factors and check the structure
-```{r}
-mtcars$cyl <- as.factor(mtcars$cyl)
-mtcars$vs <- as.factor(mtcars$vs)
-mtcars$am <- as.factor(mtcars$am)
-mtcars$gear <- as.factor(mtcars$gear)
+mtcars$cyl <- as.factor(mtcars$cyl); mtcars$vs <- as.factor(mtcars$vs); 
+mtcars$am <- as.factor(mtcars$am); mtcars$gear <- as.factor(mtcars$gear); 
 mtcars$carb <- as.factor(mtcars$carb)
-str(mtcars)
 ```
-
-
-```{r echo=FALSE, eval=FALSE}
-pairs(mpg ~ cyl + am + gear, data=mtcars, panel=panel.smooth, main="Pair Graph of Motor Trend Car Road Tests")
-```
-
-####Plot of `mpg` against `am`   
-```{r fig.width=5, fig.height=4}
-ggplot(data=mtcars, aes(x=am, y=mpg)) + geom_boxplot(aes(fill=am)) + 
-    geom_point(aes(am, mpg), position=position_dodge(width=0.5)) 
-```
-
-The plot shows significant variation in `mpg` for type of `am`
-
-```{r echo=FALSE, eval=FALSE}
-require(graphics)
-coplot(mpg ~ disp | as.factor(am), data = mtcars,
-       panel = panel.smooth, rows = 1)
-```
-
-####Pair plot of key variables that are expected to impact mpg
-
-```{r fig.width=10, fig.height=10, message=FALSE}
-require(GGally)
-ggpairs(mtcars, lower = list(continuous = "smooth"), columns  = c("mpg", "wt", "disp","qsec", "cyl","am"))
-```
-
-**Some initial observations, from the plot, that may be relevant in decidnig inclusion or exclusion of features in the model:**   
-* Both am and cyl seem to have an effect on mpg   
-* mpg is negatively correlated with wt and disp, at -0.87 and -0.85 respectively. Inclusion of both in the model may impact the fit, but one of them        
-* mpg is positively correlated with qsec, but is relatively weak at 0.42, a potential candidate for inclusion in the model   
-* wt seems to be affected by am, hence may be a factor to be considered in the model      
-* Highest correlation among continuous variables is between wt and displacement at 0.89. This may mean that inclusion of both variables in the model is not a good idea    
-
 
 **Following are the steps followed in identifying the best possible model to identify how `am` affects `mpg`**   
+Plot a pairs plot of key variables that are expected affect `mpg`   
 1. Determine parameters to include based on what was identified in the pairs plot   
 2. Run model    
 3. Assess the p-value for the coefficients, Adjusted R squared and Residual standard error for the degrees of freedom    
@@ -98,18 +48,7 @@ Low p-values for the coeficients (except the Intercept), showing a high level of
 Based on the adjusted R squared the model explains ``r format((summ$adj.r.squared *100), digits=3)`%` of the variance    
 Residual standard error with this model is ``r summ$sigma`` at ``r summ$df[2]`` degrees of freedom    
 
-####Plot of the fit
-```{r fig.width=8, fig.height=8}
-par(mfrow = c(2, 2))
-plot(fit_wt_qsec_int3)
-```
-
-The plot shows:    
-- no discernable patterns with residuals plotted against fitted values    
-- points close to the line in QQ plot, hence close to normally distributed   
-- no points exertng high leverage as outliers   
-
-##Conslusion - Ansewr to the key questions in the analysis
+###Conslusion     
 - Is an automatic or manual transmission better for MPG?  
         - This will depend on the `wt` of the car. Below `wt` of `r format(  abs( summ$coefficients[2] / summ$coefficients[5]))` manual transmission is better for MPG, but for `wt` above this value, automatic transmission is better.    
 - Quantify the MPG difference between automatic and manual transmissions    
@@ -121,29 +60,31 @@ The plot shows:
 autoMpg + summ$coefficients[2] + summ$coefficients[5] * testData$wt
 ```
 
-
 Various models that assessed in the process are shown below. They are shown in Appendix along with the outcomes      
-- lm(mpg ~ am, data = mtcars)   
-- lm(mpg ~ ., data = mtcars)   
-- lm(mpg ~ am + wt, data = mtcars)    
-- lm(mpg ~ am + wt + disp, data = mtcars)   
-- lm(mpg ~ am + wt + qsec, data = mtcars)    
-- lm(mpg ~ am + wt + qsec + wt*cyl, data = mtcars)   
-- lm(mpg ~ am + wt + qsec + wt*disp, data = mtcars)   
-- lm(mpg ~ am + wt + qsec + wt*am, data = mtcars)    
-- lm(mpg ~ am + wt + qsec + wt*am + qsec*cyl, data = mtcars)    
-- lm(mpg ~ am + disp, data = mtcars)    
-- lm(mpg ~ am + disp + qsec + wt*am, data = mtcars)    
 
+###Appendix    
 
-##Appendix
+####Pair plot of key variables that are expected to impact mpg
+
+```{r fig.width=8, fig.height=4, message=FALSE, echo=FALSE}
+require(GGally)
+ggpairs(mtcars, lower = list(continuous = "smooth"), columns  = 
+            c("mpg", "wt", "disp","qsec", "cyl","am"), title="Factors affecting mpg")
+```
+
+**Some initial observations, from the plot, that may be relevant in decidnig inclusion or exclusion of features in the model:**   
+* Both am and cyl seem to have an effect on mpg   
+* mpg is negatively correlated with wt and disp, at -0.87 and -0.85 respectively. Inclusion of both in the model may impact the fit, but one of them        
+* mpg is positively correlated with qsec, but is relatively weak at 0.42, a potential candidate for inclusion in the model   
+* wt seems to be affected by am, hence may be a factor to be considered in the model      
+* Highest correlation among continuous variables is between wt and displacement at 0.89. This may mean that inclusion of both variables in the model is not a good idea
 
 #####1. Model with only am included    
 
 ```{r, echo=TRUE}
 fit_am <- lm(mpg ~ am, data = mtcars)
 summ <- summary(fit_am)
-summ$coefficients
+#summ$coefficients
 ```
 
 Low p-values for the coeficients show a high level of signficance at 0.95 significance level.       
@@ -155,7 +96,7 @@ Residual standard error with this model is ``r summ$sigma`` at ``r summ$df[2]`` 
 ```{r}
 fit_all <- lm(mpg ~ ., data = mtcars)
 summ <- summary(fit_all)
-summ$coefficients
+#summ$coefficients
 ```
 
 p-values for all coeficients are higher than 0.05, pointing to low significance at 0.95 significance level     
@@ -167,7 +108,7 @@ Residual standard error with this model is ``r summ$sigma`` at ``r summ$df[2]`` 
 ```{r}
 fit_wt <- lm(mpg ~ am + wt, data = mtcars)
 summ <- summary(fit_wt)
-summ$coefficients
+#summ$coefficients
 ```
 
 Higher than 0.05 for p-value for the coeficient of covariate `am` show lower levels of signficance at 0.95 significance level.       
@@ -180,7 +121,7 @@ Residual standard error with this model is ``r summ$sigma`` at ``r summ$df[2]`` 
 ```{r}
 fit_wt_disp <- lm(mpg ~ am + wt + disp, data = mtcars)
 summ <- summary(fit_wt_disp)
-summ$coefficients  
+#summ$coefficients  
 ```
 
 No significant improvement, overall, for the p-values of coefficients      
@@ -193,7 +134,7 @@ Residual standard error with this model is ``r summ$sigma`` at ``r summ$df[2]`` 
 ```{r}
 fit_wt_qsec <- lm(mpg ~ am + wt + qsec, data = mtcars)
 summ <- summary(fit_wt_qsec)
-summ$coefficients
+#summ$coefficients
 ```
 
 Low p-values for the coeficients (except the Intecept) show a high level of signficance at 0.95 significance level.       
@@ -206,7 +147,7 @@ Residual standard error with this model is ``r summ$sigma`` at ``r summ$df[2]`` 
 ```{r}
 fit_wt_qsec_int <- lm(mpg ~ am + wt + qsec + wt*cyl, data = mtcars)
 summ <- summary(fit_wt_qsec_int)
-summ$coefficients
+#summ$coefficients
 ```
 
 Mixture of p-values for coeficients above and below 0.05       
@@ -218,7 +159,7 @@ Residual standard error with this model is ``r summ$sigma`` at ``r summ$df[2]`` 
 ```{r}
 fit_wt_qsec_int2 <- lm(mpg ~ am + wt + qsec + wt*disp, data = mtcars)
 summ <- summary(fit_wt_qsec_int2)
-summ$coefficients
+#summ$coefficients
 ```
 
 Mixture of p-values for coeficients above and below the threshold of 0.05       
@@ -230,7 +171,7 @@ Residual standard error with this model is ``r summ$sigma`` at ``r summ$df[2]`` 
 ```{r}
 fit_wt_qsec_int3 <- lm(mpg ~ am + wt + qsec + wt*am, data = mtcars)
 summ <- summary(fit_wt_qsec_int3)
-summ$coefficients
+#summ$coefficients
 ```
 
 Low p-values for the coeficients (except the Intercept), showing a high level of signficance at 0.95 significance level.       
@@ -242,7 +183,7 @@ Residual standard error with this model is ``r summ$sigma`` at ``r summ$df[2]`` 
 ```{r}
 fit_wt_qsec_int4 <- lm(mpg ~ am + wt + qsec + wt*am + qsec*cyl, data = mtcars)
 summ <- summary(fit_wt_qsec_int4)
-summ$coefficients
+#summ$coefficients
 ```
 
 Mixture of p-values for coeficients above and below the threshold of 0.05       
@@ -254,7 +195,7 @@ Residual standard error with this model is ``r summ$sigma`` at ``r summ$df[2]`` 
 ```{r}
 fit_disp <- lm(mpg ~ am + disp, data = mtcars)
 summ <- summary(fit_disp)
-summ$coefficients
+#summ$coefficients
 ```
 
 Mixture of p-values for coeficients above and below the threshold of 0.05       
@@ -266,9 +207,22 @@ Residual standard error with this model is ``r summ$sigma`` at ``r summ$df[2]`` 
 ```{r}
 fit_disp_qsec_int5 <- lm(mpg ~ am + disp + qsec + wt*am, data = mtcars)
 summ <- summary(fit_disp_qsec_int5)
-summ$coefficients
+#summ$coefficients
 ```
 
 Compared to model 8, p-values appear to show that `wt` is more suited in the model           
 Based on the adjusted R squared the model explains ``r format((summ$adj.r.squared *100), digits=3)`%` of the variance    
 Residual standard error with this model is ``r summ$sigma`` at ``r summ$df[2]`` degrees of freedom   
+
+**Based on the analysis, model 8 is chosen as the most appropriate. Plotting residuals to confirm that there are no other problems.**      
+####Plot of the fit    
+```{r fig.width=5, fig.height=5, echo=FALSE}
+par(mfrow = c(2, 2))
+plot(fit_wt_qsec_int3)
+```
+
+
+The plot shows:    
+- no discernable patterns with residuals plotted against fitted values    
+- points close to the line in QQ plot, hence close to normally distributed   
+- no points exertng high leverage as outliers   
