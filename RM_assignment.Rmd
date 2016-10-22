@@ -2,7 +2,7 @@
 title: "Regression Models - Assignment"
 author: "Benil Mathew"
 date: "22 October 2016"
-output: html_document
+output: pdf_document
 ---
 ###Executive Summary    
 This report is a R markdown of the peer-graded assignment for Regression Models Coursera course.
@@ -61,16 +61,29 @@ autoMpg + summ$coefficients[2] + summ$coefficients[5] * testData$wt
 ```
 
 Various models that assessed in the process are shown below. They are shown in Appendix along with the outcomes      
+1. lm(mpg ~ am, data = mtcars)   
+2. lm(mpg ~ ., data = mtcars)   
+3. lm(mpg ~ am + wt, data = mtcars)    
+4. lm(mpg ~ am + wt + disp, data = mtcars)   
+5. lm(mpg ~ am + wt + qsec, data = mtcars)    
+6. lm(mpg ~ am + wt + qsec + wt*cyl, data = mtcars)   
+7. lm(mpg ~ am + wt + qsec + wt*disp, data = mtcars)   
+8. lm(mpg ~ am + wt + qsec + wt*am, data = mtcars)    
+9. lm(mpg ~ am + wt + qsec + wt*am + qsec*cyl, data = mtcars)    
+10. lm(mpg ~ am + disp, data = mtcars)    
+11. lm(mpg ~ am + disp + qsec + wt*am, data = mtcars)    
 
 ###Appendix    
 
-####Pair plot of key variables that are expected to impact mpg
+####Pair plot of key variables that are expected to impact mpg    
+Plot of features that are expected to have an impact on mpg    
 
-```{r fig.width=8, fig.height=4, message=FALSE, echo=FALSE}
+```{r fig.width=8, fig.height=8, message=FALSE, echo=FALSE}
 require(GGally)
 ggpairs(mtcars, lower = list(continuous = "smooth"), columns  = 
             c("mpg", "wt", "disp","qsec", "cyl","am"), title="Factors affecting mpg")
 ```
+
 
 **Some initial observations, from the plot, that may be relevant in decidnig inclusion or exclusion of features in the model:**   
 * Both am and cyl seem to have an effect on mpg   
@@ -79,149 +92,14 @@ ggpairs(mtcars, lower = list(continuous = "smooth"), columns  =
 * wt seems to be affected by am, hence may be a factor to be considered in the model      
 * Highest correlation among continuous variables is between wt and displacement at 0.89. This may mean that inclusion of both variables in the model is not a good idea
 
-#####1. Model with only am included    
 
-```{r, echo=TRUE}
-fit_am <- lm(mpg ~ am, data = mtcars)
-summ <- summary(fit_am)
-#summ$coefficients
-```
-
-Low p-values for the coeficients show a high level of signficance at 0.95 significance level.       
-Based on the adjusted R squared the model explains ``r format((summ$adj.r.squared *100), digits=3)`%` of the variance    
-Residual standard error with this model is ``r summ$sigma`` at ``r summ$df[2]`` degrees of freedom   
-
-#####2. Attempt a model with all variables   
-
-```{r}
-fit_all <- lm(mpg ~ ., data = mtcars)
-summ <- summary(fit_all)
-#summ$coefficients
-```
-
-p-values for all coeficients are higher than 0.05, pointing to low significance at 0.95 significance level     
-Based on the adjusted R squared the model explains ``r format((summ$adj.r.squared *100), digits=3)`%` of the variance    
-Residual standard error with this model is ``r summ$sigma`` at ``r summ$df[2]`` degrees of freedom   
-
-#####3. Adding wt to the model   
-
-```{r}
-fit_wt <- lm(mpg ~ am + wt, data = mtcars)
-summ <- summary(fit_wt)
-#summ$coefficients
-```
-
-Higher than 0.05 for p-value for the coeficient of covariate `am` show lower levels of signficance at 0.95 significance level.       
-Based on the adjusted R squared the model explains ``r format((summ$adj.r.squared *100), digits=3)`%` of the variance    
-Residual standard error with this model is ``r summ$sigma`` at ``r summ$df[2]`` degrees of freedom   
-
-
-#####4. Adding disp to the model   
-
-```{r}
-fit_wt_disp <- lm(mpg ~ am + wt + disp, data = mtcars)
-summ <- summary(fit_wt_disp)
-#summ$coefficients  
-```
-
-No significant improvement, overall, for the p-values of coefficients      
-Based on the adjusted R squared the model explains ``r format((summ$adj.r.squared *100), digits=3)`%` of the variance    
-Residual standard error with this model is ``r summ$sigma`` at ``r summ$df[2]`` degrees of freedom   
-
-
-#####5. Repalcing disp with qsec to the model   
-
-```{r}
-fit_wt_qsec <- lm(mpg ~ am + wt + qsec, data = mtcars)
-summ <- summary(fit_wt_qsec)
-#summ$coefficients
-```
-
-Low p-values for the coeficients (except the Intecept) show a high level of signficance at 0.95 significance level.       
-Based on the adjusted R squared the model explains ``r format((summ$adj.r.squared *100), digits=3)`%` of the variance    
-Residual standard error with this model is ``r summ$sigma`` at ``r summ$df[2]`` degrees of freedom   
-
-
-#####6. Adding cyl as an interaction with wt    
-
-```{r}
-fit_wt_qsec_int <- lm(mpg ~ am + wt + qsec + wt*cyl, data = mtcars)
-summ <- summary(fit_wt_qsec_int)
-#summ$coefficients
-```
-
-Mixture of p-values for coeficients above and below 0.05       
-Based on the adjusted R squared the model explains ``r format((summ$adj.r.squared *100), digits=3)`%` of the variance    
-Residual standard error with this model is ``r summ$sigma`` at ``r summ$df[2]`` degrees of freedom   
-
-#####7. Replacing cyl with disp as an interaction with wt    
-
-```{r}
-fit_wt_qsec_int2 <- lm(mpg ~ am + wt + qsec + wt*disp, data = mtcars)
-summ <- summary(fit_wt_qsec_int2)
-#summ$coefficients
-```
-
-Mixture of p-values for coeficients above and below the threshold of 0.05       
-Based on the adjusted R squared the model explains ``r format((summ$adj.r.squared *100), digits=3)`%` of the variance    
-Residual standard error with this model is ``r summ$sigma`` at ``r summ$df[2]`` degrees of freedom   
-
-#####8. Replacing disp with am as an interaction with wt    
-
-```{r}
-fit_wt_qsec_int3 <- lm(mpg ~ am + wt + qsec + wt*am, data = mtcars)
-summ <- summary(fit_wt_qsec_int3)
-#summ$coefficients
-```
-
-Low p-values for the coeficients (except the Intercept), showing a high level of signficance at 0.95 significance level.       
-Based on the adjusted R squared the model explains ``r format((summ$adj.r.squared *100), digits=3)`%` of the variance    
-Residual standard error with this model is ``r summ$sigma`` at ``r summ$df[2]`` degrees of freedom   
-
-#####9. Adding another interaction of qsec and cyl    
-
-```{r}
-fit_wt_qsec_int4 <- lm(mpg ~ am + wt + qsec + wt*am + qsec*cyl, data = mtcars)
-summ <- summary(fit_wt_qsec_int4)
-#summ$coefficients
-```
-
-Mixture of p-values for coeficients above and below the threshold of 0.05       
-Based on the adjusted R squared the model explains ``r format((summ$adj.r.squared *100), digits=3)`%` of the variance    
-Residual standard error with this model is ``r summ$sigma`` at ``r summ$df[2]`` degrees of freedom   
-
-#####10. Replacing wt in model 3 with disp    
-
-```{r}
-fit_disp <- lm(mpg ~ am + disp, data = mtcars)
-summ <- summary(fit_disp)
-#summ$coefficients
-```
-
-Mixture of p-values for coeficients above and below the threshold of 0.05       
-Based on the adjusted R squared the model explains ``r format((summ$adj.r.squared *100), digits=3)`%` of the variance    
-Residual standard error with this model is ``r summ$sigma`` at ``r summ$df[2]`` degrees of freedom   
-
-#####11. Replacing wt in model 8 with disp    
-
-```{r}
-fit_disp_qsec_int5 <- lm(mpg ~ am + disp + qsec + wt*am, data = mtcars)
-summ <- summary(fit_disp_qsec_int5)
-#summ$coefficients
-```
-
-Compared to model 8, p-values appear to show that `wt` is more suited in the model           
-Based on the adjusted R squared the model explains ``r format((summ$adj.r.squared *100), digits=3)`%` of the variance    
-Residual standard error with this model is ``r summ$sigma`` at ``r summ$df[2]`` degrees of freedom   
-
-**Based on the analysis, model 8 is chosen as the most appropriate. Plotting residuals to confirm that there are no other problems.**      
+**Based on analysing all the models, model 8 is chosen as the most appropriate. Plotting residuals to confirm that there are no other problems.**      
 
 ####Plot of the fit    
-```{r fig.width=5, fig.height=5, echo=FALSE}
+```{r fig.width=8, fig.height=8, echo=FALSE}
 par(mfrow = c(2, 2))
 plot(fit_wt_qsec_int3)
 ```
-
 
 The plot shows:    
 - no discernable patterns with residuals plotted against fitted values    
